@@ -1,298 +1,266 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-typedef struct
-{
-    int d, m, y;
-} date;
-typedef struct
-{
-    int ID_number;
-    char First_name[50];
-    char Last_name[50];
-    date date_of_birth;
-    char address[100];
+#include <stdbool.h>
+
+#define MAX_STUDENTS 1000
+#define MAX_NAME_LENGTH 50
+#define MAX_ADDRESS_LENGTH 100
+#define SUBJECTS_COUNT 4
+
+typedef struct {
+    int day, month, year;
+} Date;
+
+typedef struct {
+    int id;
+    char firstName[MAX_NAME_LENGTH];
+    char lastName[MAX_NAME_LENGTH];
+    Date dateOfBirth;
+    char address[MAX_ADDRESS_LENGTH];
     int class;
     int contact;
     float average;
-} student_Records;
-int Add(student_Records *p, int n, int ID_number, char *First_name, char *Last_name, date date_of_birth, char *address, int class, int contact, float average)
-{
-    int i = n;
-    p[i].ID_number = ID_number;
-    strcpy(p[i].First_name, First_name);
-    strcpy(p[i].Last_name, Last_name);
-    p[i].date_of_birth.d = date_of_birth.d;
-    p[i].date_of_birth.m = date_of_birth.m;
-    p[i].date_of_birth.y = date_of_birth.y;
-    strcpy(p[i].address, address);
-    p[i].class = class;
-    p[i].contact = contact;
-    p[i].average = average;
-    n++;
-    return n;
+    float marks[SUBJECTS_COUNT];
+} Student;
+
+Student students[MAX_STUDENTS];
+int studentCount = 0;
+
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
-int Search(student_Records *p, int n, char *First_name, char *Last_name)
-{
-    int i;
-    for (i = 0; i < n; i++)
-    {
-        if (strcmp(p[i].First_name, First_name) == 0 && strcmp(p[i].Last_name, Last_name) == 0)
-        {
-            break;
+
+Date inputDate() {
+    Date date;
+    printf("Enter date (DD MM YYYY): ");
+    scanf("%d %d %d", &date.day, &date.month, &date.year);
+    return date;
+}
+
+void addStudent() {
+    if (studentCount >= MAX_STUDENTS) {
+        printf("Error: Maximum number of students reached.\n");
+        return;
+    }
+
+    Student *s = &students[studentCount];
+
+    printf("Enter ID: ");
+    scanf("%d", &s->id);
+
+    printf("Enter First Name: ");
+    scanf("%s", s->firstName);
+
+    printf("Enter Last Name: ");
+    scanf("%s", s->lastName);
+
+    s->dateOfBirth = inputDate();
+
+    clearInputBuffer();
+    printf("Enter Address: ");
+    fgets(s->address, MAX_ADDRESS_LENGTH, stdin);
+    s->address[strcspn(s->address, "\n")] = 0;
+
+    printf("Enter Class: ");
+    scanf("%d", &s->class);
+
+    printf("Enter Contact: ");
+    scanf("%d", &s->contact);
+
+    s->average = 0;
+    memset(s->marks, 0, sizeof(s->marks));
+
+    studentCount++;
+    printf("Student added successfully.\n");
+}
+
+int findStudent(const char *firstName, const char *lastName) {
+    for (int i = 0; i < studentCount; i++) {
+        if (strcmp(students[i].firstName, firstName) == 0 &&
+            strcmp(students[i].lastName, lastName) == 0) {
+            return i;
         }
     }
-    if (strcmp(p[i].First_name, First_name) == 0 && strcmp(p[i].Last_name, Last_name) == 0)
-    {
-        return i;
-    }
-    else
-    {
-        return -1;
-    }
+    return -1;
 }
-int Delete(student_Records *p, int n, int Record_Index, float **Mark_atrix)
-{
-    int i;
-    for (i = Record_Index; i < n; i++)
-    {
-        p[i].ID_number = p[i + 1].ID_number;
-        strcpy(p[i].First_name, p[i + 1].First_name);
-        strcpy(p[i].Last_name, p[i + 1].Last_name);
-        p[i].date_of_birth.d = p[i + 1].date_of_birth.d;
-        p[i].date_of_birth.m = p[i + 1].date_of_birth.m;
-        p[i].date_of_birth.y = p[i + 1].date_of_birth.y;
-        strcpy(p[i].address, p[i + 1].address);
-        p[i].class = p[i + 1].class;
-        p[i].contact = p[i + 1].contact;
-        p[i].average = p[i + 1].average;
-        Mark_atrix[i][0] = Mark_atrix[i + 1][0];
-        Mark_atrix[i][1] = Mark_atrix[i + 1][1];
-        Mark_atrix[i][2] = Mark_atrix[i + 1][2];
-        Mark_atrix[i][3] = Mark_atrix[i + 1][3];
+
+void deleteStudent() {
+    char firstName[MAX_NAME_LENGTH], lastName[MAX_NAME_LENGTH];
+    printf("Enter First Name: ");
+    scanf("%s", firstName);
+    printf("Enter Last Name: ");
+    scanf("%s", lastName);
+
+    int index = findStudent(firstName, lastName);
+    if (index == -1) {
+        printf("Student not found.\n");
+        return;
     }
-    n--;
-    return n;
+
+    for (int i = index; i < studentCount - 1; i++) {
+        students[i] = students[i + 1];
+    }
+    studentCount--;
+    printf("Student deleted successfully.\n");
 }
-float Fill_Marks(float **Mark_atrix, int Record_index, float subj1, float subj2, float subj3, float subj4)
-{
-    Mark_atrix[Record_index][0] = subj1;
-    Mark_atrix[Record_index][1] = subj2;
-    Mark_atrix[Record_index][2] = subj3;
-    Mark_atrix[Record_index][3] = subj4;
-    return (subj1 + subj2 + subj3 + subj4) / 4;
+
+void displayStudent(const Student *s) {
+    printf("ID: %d\n", s->id);
+    printf("Name: %s %s\n", s->firstName, s->lastName);
+    printf("Date of Birth: %d/%d/%d\n", s->dateOfBirth.day, s->dateOfBirth.month, s->dateOfBirth.year);
+    printf("Address: %s\n", s->address);
+    printf("Class: %d\n", s->class);
+    printf("Contact: %d\n", s->contact);
+    printf("Average: %.2f\n", s->average);
+    printf("Marks: Physics: %.2f, Math: %.2f, Arabic: %.2f, English: %.2f\n",
+           s->marks[0], s->marks[1], s->marks[2], s->marks[3]);
+    printf("\n");
 }
-void Display_Record(student_Records *p, int n)
-{
-    int i;
-    for (i = 0; i < n; i++)
-    {
-        printf("student number %d: \n", i + 1);
-        printf("ID Number: %d \n", p[i].ID_number);
-        printf("First Name: %s \n", p[i].First_name);
-        printf("Last Name: %s \n", p[i].Last_name);
-        printf("Date of Birth: %d/%d/%d \n", p[i].date_of_birth.d, p[i].date_of_birth.m, p[i].date_of_birth.y);
-        printf("Adress: %s \n", p[i].address);
-        printf("Class: %d \n", p[i].class);
-        printf("Emergency Contact: %d \n ", p[i].contact);
-        printf("Overall Average: %.2f \n", p[i].average);
+
+void displayAllStudents() {
+    if (studentCount == 0) {
+        printf("No students found.\n");
+        return;
+    }
+
+    for (int i = 0; i < studentCount; i++) {
+        printf("Student %d:\n", i + 1);
+        displayStudent(&students[i]);
     }
 }
-void Display_Report_Card(student_Records *p, int Record_index, float **Mark_atrix)
-{
-    int i = Record_index;
-    printf("student number %d: \n", i);
-    printf("ID Number: %d \n", p[i].ID_number);
-    printf("First Name: %s \n", p[i].First_name);
-    printf("Last Name: %s \n", p[i].Last_name);
-    printf("Date of Birth: %d/%d/%d \n", p[i].date_of_birth.d, p[i].date_of_birth.m, p[i].date_of_birth.y);
-    printf("Adress: %s \n", p[i].address);
-    printf("Class: %d \n", p[i].class);
-    printf("Emergency Contact: %d \n ", p[i].contact);
-    printf("Overall Average: %.2f \n", p[i].average);
-    printf("\t==========================\n");
-    printf("Marks: \n");
-    printf("Physics: %.2f   ", Mark_atrix[i][0]);
-    printf("Math: %.2f   ", Mark_atrix[i][1]);
-    printf("Arabic: %.2f   ", Mark_atrix[i][2]);
-    printf("English: %.2f  ", Mark_atrix[i][3]);
-}
-void Display_By_Criteria(student_Records *p, int n, float v, char *c)
-{
-    int i;
-    for (i = 0; i < n; i++)
-    {
-        if (strcmp(p[i].First_name, c) == 0 || strcmp(p[i].Last_name, c) == 0 || strcmp(p[i].address, c) == 0 || p[i].average == v || p[i].class == v || p[i].contact == v || p[i].ID_number == v || p[i].date_of_birth.d == v || p[i].date_of_birth.m == v || p[i].date_of_birth.y == v)
-        {
-            printf("student number %d: \n", i + 1);
-            printf("ID Number: %d \n", p[i].ID_number);
-            printf("First Name: %s \n", p[i].First_name);
-            printf("Last Name: %s \n", p[i].Last_name);
-            printf("Date of Birth: %d/%d/%d \n", p[i].date_of_birth.d, p[i].date_of_birth.m, p[i].date_of_birth.y);
-            printf("Adress: %s \n", p[i].address);
-            printf("Class: %d \n", p[i].class);
-            printf("Emergency Contact: %d \n ", p[i].contact);
-            printf("Overall Average: %.2f \n", p[i].average);
-        }
+
+void fillMarks() {
+    char firstName[MAX_NAME_LENGTH], lastName[MAX_NAME_LENGTH];
+    printf("Enter First Name: ");
+    scanf("%s", firstName);
+    printf("Enter Last Name: ");
+    scanf("%s", lastName);
+
+    int index = findStudent(firstName, lastName);
+    if (index == -1) {
+        printf("Student not found.\n");
+        return;
     }
-}
-int main()
-{
-    float **Mark_Matrix = malloc(1000 * sizeof(float *));
-    for (int j = 0; j < 100; j++)
-    {
-        Mark_Matrix[j] = (float *)malloc(4 * sizeof(float));
+
+    Student *s = &students[index];
+    const char *subjects[] = {"Physics", "Math", "Arabic", "English"};
+
+    float total = 0;
+    for (int i = 0; i < SUBJECTS_COUNT; i++) {
+        printf("Enter mark for %s: ", subjects[i]);
+        scanf("%f", &s->marks[i]);
+        total += s->marks[i];
     }
-    student_Records a[100];
-    int c, i = 0;
-    do
-    {
-        printf("\t===== Student Record Management System =====\n");
-        printf("\t============================================\n");
-        printf("\t1> Add new student record\n");
-        printf("\t2> Delet a student record\n");
-        printf("\t3> Display a student record\n");
-        printf("\t4> Fill in Marks of student\n");
-        printf("\t5> Display a report card of a specific student\n");
-        printf("\t6> search\n");
-        printf("\t============================================");
-        printf("\n");
-        printf("0> EXIT \n");
-        printf("enter youre choice:");
-        scanf("%d", &c);
-        switch (c)
-        {
+    s->average = total / SUBJECTS_COUNT;
+
+    printf("Marks updated successfully.\n");
+}
+
+void displayReportCard() {
+    char firstName[MAX_NAME_LENGTH], lastName[MAX_NAME_LENGTH];
+    printf("Enter First Name: ");
+    scanf("%s", firstName);
+    printf("Enter Last Name: ");
+    scanf("%s", lastName);
+
+    int index = findStudent(firstName, lastName);
+    if (index == -1) {
+        printf("Student not found.\n");
+        return;
+    }
+
+    printf("\n===== Report Card =====\n");
+    displayStudent(&students[index]);
+}
+
+void searchStudents() {
+    printf("Search by:\n");
+    printf("1. First Name\n");
+    printf("2. Last Name\n");
+    printf("3. Address\n");
+    printf("4. Average or ID or Class\n");
+    printf("Enter your choice: ");
+
+    int choice;
+    scanf("%d", &choice);
+
+    char searchStr[MAX_NAME_LENGTH];
+    float searchNum;
+
+    switch (choice) {
         case 1:
-            int ID;
-            char First[50], Last[50];
-            date date_birth;
-            char addr[100];
-            int clas, conct;
-            float aver;
-            printf("enter the First Name:");
-            scanf("%s", First);
-            printf("enter the Last Name:");
-            scanf("%s", Last);
-            printf("enter the ID number:");
-            scanf("%d", &ID);
-            printf("enter the date of birth:\n");
-            printf("day:");
-            scanf("%d", &date_birth.d);
-            printf("month:");
-            scanf("%d", &date_birth.m);
-            printf("year:");
-            scanf("%d", &date_birth.y);
-            printf("enter the address:");
-            scanf("%s", addr);
-            printf("enter tha class:");
-            scanf("%d", &clas);
-            printf("enter the contact:");
-            scanf("%d", &conct);
-            aver = 0;
-            i = Add(a, i, ID, First, Last, date_birth, addr, clas, conct, aver);
-            break;
         case 2:
-            char st1[50], st2[50];
-            printf("enter the First Name:");
-            scanf("%s", st1);
-            printf("enter the Last Name:");
-            scanf("%s", st2);
-            int j;
-            j = Search(a, i, st1, st2);
-            if (j == -1)
-            {
-                printf("these name is not exist\n");
-            }
-            else
-            {
-                i = Delete(a, i, j, Mark_Matrix);
-            }
-            break;
         case 3:
-            Display_Record(a, i);
+            printf("Enter search term: ");
+            scanf("%s", searchStr);
             break;
         case 4:
-            char st3[50], st4[50];
-            printf("enter the First Name:");
-            scanf("%s", st3);
-            printf("enter the Last Name:");
-            scanf("%s", st4);
-            i = Search(a, i, st3, st4);
-            if (i == -1)
-            {
-                printf("these name is not exist\n");
-            }
-            else
-            {
-                float s1, s2, s3, s4, m;
-                printf("enter the mark of Physics:");
-                scanf("%f", &s1);
-                printf("enter the mark of Math:");
-                scanf("%f", &s2);
-                printf("enter the mark of Arabic:");
-                scanf("%f", &s3);
-                printf("enter the mark of English:");
-                scanf("%f", &s4);
-                m = Fill_Marks(Mark_Matrix, i, s1, s2, s3, s4);
-                a[i].average = m;
-            }
-            break;
-        case 5:
-            char st5[50], st6[50];
-            printf("enter the First Name:");
-            scanf("%s", st5);
-            printf("enter the Last Name:");
-            scanf("%s", st6);
-            Display_Report_Card(a, Search(a, i, st5, st6), Mark_Matrix);
-            break;
-        case 6:
-            int x;
-            printf("\tChoose what you want to search for:");
-            printf("\t1> By First Name ?\n");
-            printf("\t2> By Last Name ?\n");
-            printf("\t3> By Address ?\n");
-            printf("\t4> By average or ID number or class ? \n");
-            printf("enter youre choice:");
-            scanf("%d", &x);
-            switch (x)
-            {
-            case 1:
-                char st[50];
-                printf("enter the First Name:");
-                scanf("%s", st);
-                Display_By_Criteria(a, i, -999, st);
-                break;
-            case 2:
-                char st1[50];
-                printf("enter the Last Name:");
-                scanf("%s", st1);
-                Display_By_Criteria(a, i, -999, st1);
-                break;
-            case 3:
-                char st3[50];
-                printf("enter the Address:");
-                scanf("%s", st3);
-                Display_By_Criteria(a, i, -999, st);
-                break;
-            case 4:
-                float b;
-                printf("enter average or ID number or class:");
-                scanf("%f", &b);
-                Display_By_Criteria(a, i, b, NULL);
-                break;
-            default:
-                printf("error, You entered the wrong number !");
-                break;
-            }
-            break;
-        case 0:
-            printf("goodbye \n");
+            printf("Enter search value: ");
+            scanf("%f", &searchNum);
             break;
         default:
-            printf("error, You entered the wrong number !");
-            break;
+            printf("Invalid choice.\n");
+            return;
+    }
+
+    bool found = false;
+    for (int i = 0; i < studentCount; i++) {
+        bool match = false;
+        switch (choice) {
+            case 1:
+                match = (strcmp(students[i].firstName, searchStr) == 0);
+                break;
+            case 2:
+                match = (strcmp(students[i].lastName, searchStr) == 0);
+                break;
+            case 3:
+                match = (strstr(students[i].address, searchStr) != NULL);
+                break;
+            case 4:
+                match = (students[i].average == searchNum ||
+                         students[i].id == (int)searchNum ||
+                         students[i].class == (int)searchNum);
+                break;
         }
-    } while (c != 0);
+
+        if (match) {
+            displayStudent(&students[i]);
+            found = true;
+        }
+    }
+
+    if (!found) {
+        printf("No matching students found.\n");
+    }
+}
+
+int main() {
+    int choice;
+    do {
+        printf("\n===== Student Record Management System =====\n");
+        printf("1. Add new student record\n");
+        printf("2. Delete a student record\n");
+        printf("3. Display all student records\n");
+        printf("4. Fill in marks of student\n");
+        printf("5. Display report card of a specific student\n");
+        printf("6. Search students\n");
+        printf("0. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: addStudent(); break;
+            case 2: deleteStudent(); break;
+            case 3: displayAllStudents(); break;
+            case 4: fillMarks(); break;
+            case 5: displayReportCard(); break;
+            case 6: searchStudents(); break;
+            case 0: printf("Goodbye!\n"); break;
+            default: printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 0);
 
     return 0;
 }

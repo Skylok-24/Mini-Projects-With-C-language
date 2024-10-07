@@ -1,0 +1,4 @@
+/home/lokman-abdelmonam/Desktop/Project/cmake-build-debug/CMakeFiles/Project_1.dir
+/home/lokman-abdelmonam/Desktop/Project/cmake-build-debug/CMakeFiles/Project_2.dir
+/home/lokman-abdelmonam/Desktop/Project/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/lokman-abdelmonam/Desktop/Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir

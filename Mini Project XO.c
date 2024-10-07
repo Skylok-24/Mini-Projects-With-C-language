@@ -177,11 +177,11 @@ int main()
             printf("   1  2  3 \n");
             for (i = 0; i < 3; i++)
             {
-                printf("%d |", i + 1);
+                printf("%d | ", i + 1);
                 for (j = 0; j < 3; j++)
                 {
                     printf(" %c ", play_table[i][j]);
-                    printf("|");
+                    printf(" | ");
                 }
                 printf("\n");
             }
